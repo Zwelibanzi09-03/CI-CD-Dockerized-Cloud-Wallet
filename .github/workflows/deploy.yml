@@ -1,0 +1,69 @@
+name: CI/CD Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push app image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dockerized-cloud-wallet:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dockerized-cloud-wallet:latest
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            mkdir -p ~/wallet-deploy
+            cd ~/wallet-deploy
+
+            cat > docker-compose.yml <<'EOF'
+            services:
+              app:
+                image: ndandise/dockerized-cloud-wallet:latest
+                container_name: wallet_app
+                ports:
+                  - "3000:3000"
+                depends_on:
+                  - db
+                restart: always
+
+              db:
+                image: mysql:8.0
+                container_name: wallet_db
+                restart: always
+                environment:
+                  MYSQL_ROOT_PASSWORD: rootpass
+                  MYSQL_DATABASE: wallet_db
+                  MYSQL_USER: wallet_user
+                  MYSQL_PASSWORD: wallet_pass
+                ports:
+                  - "3307:3306"
+                volumes:
+                  - mysql_data:/var/lib/mysql
+
+            volumes:
+              mysql_data:
+            EOF
+
+            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+            docker pull ndandise/dockerized-cloud-wallet:latest
+            docker compose down || true
+            docker compose up -d
