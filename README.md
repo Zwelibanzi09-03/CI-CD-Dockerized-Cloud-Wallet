@@ -1,566 +1,266 @@
-\# Dockerized Cloud Wallet
+# CI/CD Dockerized Cloud Wallet on AWS EC2
 
+A real-world DevOps project where a Node.js + MySQL wallet application was containerized with Docker, connected to GitHub Actions CI/CD, and automatically deployed to a live AWS EC2 Ubuntu server.
 
+## Live Demo
 
-A cloud-ready wallet API built with Node.js, Express, MySQL, and Docker Compose.
+http://16.28.29.110:3000
 
+---
 
+## Project Overview
 
-This project simulates a digital wallet system where users can create wallet accounts, view balances, deposit funds, and withdraw funds. It demonstrates backend development, database integration, containerization, and practical cloud engineering skills.
+This project demonstrates a complete automated deployment pipeline.
 
+Whenever code is pushed to GitHub:
 
+- GitHub Actions starts automatically
+- Docker image is built
+- Image is pushed to Docker Hub
+- GitHub securely connects to AWS EC2 using SSH
+- EC2 pulls the latest image
+- Docker Compose launches containers
+- Updated application goes live automatically
 
-\## Tech Stack
+---
 
+## Tech Stack
 
+- AWS EC2 Ubuntu 24.04
+- Docker
+- Docker Compose
+- GitHub Actions
+- Docker Hub
+- Node.js
+- Express.js
+- MySQL
+- Linux
+- SSH Keys
+- Git
 
-\* Node.js
+---
 
-\* Express.js
+## Architecture
 
-\* MySQL 8
+Developer Pushes Code  
+↓  
+GitHub Repository  
+↓  
+GitHub Actions Workflow  
+↓  
+Build Docker Image  
+↓  
+Push to Docker Hub  
+↓  
+SSH Into AWS EC2  
+↓  
+Pull Latest Image  
+↓  
+Run Docker Compose  
+↓  
+Live Application
 
-\* Docker
+---
 
-\* Docker Compose
+## Repository Structure
 
-\* REST API
-
-\* PowerShell
-
-
-
-\## Project Structure
-
-
-
-dockerized-cloud-wallet/
-
-├── server.js
-
-├── package.json
-
-├── package-lock.json
-
-├── Dockerfile
-
-├── docker-compose.yml
-
-├── .dockerignore
-
-├── .gitignore
-
-├── init.sql
-
+.
+├── .github/  
+│   └── workflows/  
+│       └── deploy.yml  
+├── Dockerfile  
+├── docker-compose.yml  
+├── server.js  
+├── package.json  
 └── README.md
 
+---
 
+## CI/CD Workflow
 
-\## How It Works
+Workflow file:
 
+.github/workflows/deploy.yml
 
+This workflow handles:
 
-This project runs two containers together:
+- Checkout repository code
+- Login to Docker Hub
+- Build Docker image
+- Push image to Docker Hub
+- SSH into EC2
+- Pull latest image
+- Restart containers
+- Publish live update
 
+---
 
+## Docker Containers
 
-\* \*\*wallet\_app\*\* runs the Node.js API
+### App Container
 
-\* \*\*wallet\_db\*\* runs the MySQL database
+- Node.js Cloud Wallet API
+- Runs on port 3000
 
+### Database Container
 
+- MySQL 8.0
+- Persistent Docker volume attached
 
-Docker Compose manages both services and allows them to communicate on the same internal network.
+---
 
+## Application Features
 
+- Create users
+- Deposit funds
+- Withdraw funds
+- View balances
+- MySQL integration
 
-Ports used:
+---
 
+## Real Problems Solved During This Project
 
+This project included real production troubleshooting.
 
-\* API: `3000`
+### 1. GitHub Secrets Configuration
 
-\* MySQL: `3307`
+Configured secure repository secrets:
 
+- DOCKERHUB_USERNAME
+- DOCKERHUB_TOKEN
+- EC2_HOST
+- EC2_USERNAME
+- EC2_SSH_KEY
 
+### 2. SSH Authentication Problems
 
-\## Features
+Resolved:
 
+- Missing SSH key issues
+- Incorrect key formatting
+- Connection reset by peer
+- Manual SSH verification through PowerShell
 
+### 3. Original EC2 Instance Failure
 
-\* Create wallet users
+The first server became unstable:
 
-\* View all users
+- High CPU CloudWatch alarm triggered
+- Instance checks failed
+- SSH access stopped working
+- GitHub deployment failed
 
-\* Deposit funds
+Solution:
 
-\* Withdraw funds
+- Launched a fresh Ubuntu EC2 instance
+- Reinstalled Docker
+- Reconfigured SSH access
+- Updated GitHub secrets
+- Redeployed successfully
 
-\* Store balances in MySQL
+### 4. Ubuntu 24.04 Docker Package Changes
 
-\* Run entire stack with Docker
+Initial install method failed.
 
+Correct installation used:
 
+sudo apt update  
+sudo apt install docker.io docker-compose-v2 -y
 
-\## Run The Project
+### 5. GitHub Actions Deployment Errors
 
+Fixed:
 
+- Hanging docker login step
+- Wrong EC2 target IP
+- SSH handshake failures
+- Failed workflow reruns
+- Broken server deployment attempts
 
-Make sure Docker Desktop is running.
+### 6. AWS Networking
 
+Configured security group inbound rules:
 
+- Port 22 SSH
+- Port 3000 Application Access
+- Port 80 HTTP
 
-```bash
+---
 
-docker compose up --build
+## Final Successful Result
 
-```
+GitHub Actions workflow completed successfully.
 
+Containers deployed automatically.
 
+Live application response:
 
-To stop:
+Cloud Wallet API is running
 
+---
 
+## Commands Used
 
-```bash
+### Trigger Deployment
 
-docker compose down
+git add .  
+git commit -m "Deploy update"  
+git push
 
-```
+### Verify Docker
 
-
-
-\## API Base URL
-
-
-
-```text
-
-http://localhost:3000
-
-```
-
-
-
-\## API Endpoints
-
-
-
-\### Create User
-
-
-
-\*\*POST\*\* `/users`
-
-
-
-Request:
-
-
-
-```json
-
-{
-
-&#x20; "name": "Ndandise",
-
-&#x20; "email": "ndandise@example.com",
-
-&#x20; "balance": 500
-
-}
-
-```
-
-
-
-PowerShell test:
-
-
-
-```powershell
-
-Invoke-RestMethod -Method Post -Uri "http://localhost:3000/users" -ContentType "application/json" -Body '{"name":"Ndandise","email":"ndandise@example.com","balance":500}'
-
-```
-
-
-
-Response:
-
-
-
-```json
-
-{
-
-&#x20; "message": "User created successfully",
-
-&#x20; "userId": 1
-
-}
-
-```
-
-
-
-\---
-
-
-
-\### Get Users
-
-
-
-\*\*GET\*\* `/users`
-
-
-
-```powershell
-
-Invoke-RestMethod -Method Get -Uri "http://localhost:3000/users"
-
-```
-
-
-
-Response:
-
-
-
-```json
-
-\[
-
-&#x20; {
-
-&#x20;   "id": 1,
-
-&#x20;   "name": "Ndandise",
-
-&#x20;   "email": "ndandise@example.com",
-
-&#x20;   "balance": 500
-
-&#x20; }
-
-]
-
-```
-
-
-
-\---
-
-
-
-\### Deposit Funds
-
-
-
-\*\*POST\*\* `/deposit/1`
-
-
-
-Request:
-
-
-
-```json
-
-{
-
-&#x20; "amount": 200
-
-}
-
-```
-
-
-
-```powershell
-
-Invoke-RestMethod -Method Post -Uri "http://localhost:3000/deposit/1" -ContentType "application/json" -Body '{"amount":200}'
-
-```
-
-
-
-Response:
-
-
-
-```json
-
-{
-
-&#x20; "message": "Deposit successful"
-
-}
-
-```
-
-
-
-Balance changes from `500` to `700`.
-
-
-
-\---
-
-
-
-\### Withdraw Funds
-
-
-
-\*\*POST\*\* `/withdraw/1`
-
-
-
-Request:
-
-
-
-```json
-
-{
-
-&#x20; "amount": 100
-
-}
-
-```
-
-
-
-```powershell
-
-Invoke-RestMethod -Method Post -Uri "http://localhost:3000/withdraw/1" -ContentType "application/json" -Body '{"amount":100}'
-
-```
-
-
-
-Response:
-
-
-
-```json
-
-{
-
-&#x20; "message": "Withdrawal successful"
-
-}
-
-```
-
-
-
-Balance changes from `700` to `600`.
-
-
-
-\## Database Setup
-
-
-
-The `init.sql` file automatically creates the users table on first startup.
-
-
-
-Columns:
-
-
-
-\* id
-
-\* name
-
-\* email
-
-\* balance
-
-
-
-\## Docker Setup
-
-
-
-\### Dockerfile
-
-
-
-The app container:
-
-
-
-\* Uses Node.js 20 Alpine
-
-\* Copies project files
-
-\* Installs dependencies
-
-\* Exposes port 3000
-
-\* Starts with `npm start`
-
-
-
-\### docker-compose.yml
-
-
-
-This file:
-
-
-
-\* Builds the Node.js app
-
-\* Runs MySQL 8
-
-\* Maps ports
-
-\* Creates persistent database storage
-
-\* Loads `init.sql`
-
-
-
-\## Commands Used
-
-
-
-```bash
-
-docker compose up --build
-
-docker compose down
-
+docker --version  
+docker compose version  
 docker ps
 
-docker logs wallet\_app
+### Manual SSH Access
 
-docker logs wallet\_db
+ssh -i ndandise-key.pem ubuntu@server-ip
 
-docker restart wallet\_app
+---
 
-```
+## Skills Demonstrated
 
+- AWS EC2 Deployment
+- Docker Containers
+- CI/CD Automation
+- GitHub Actions
+- Linux Administration
+- SSH Key Management
+- Secrets Management
+- Production Troubleshooting
+- MySQL Containers
+- Cloud Networking
+- Infrastructure Recovery
 
+---
 
-\## Successfully Tested
+## Future Improvements
 
+- Custom domain
+- HTTPS SSL
+- Nginx reverse proxy
+- Monitoring dashboard
+- Auto rollback deployments
+- Load balancer
+- Staging environment
 
+---
 
-\* Docker image build
+## Why This Project Matters
 
-\* Multi-container startup
+This project proves real hands-on DevOps engineering ability:
 
-\* App to DB connection
+- Build
+- Automate
+- Deploy
+- Troubleshoot
+- Recover
+- Deliver
 
-\* User creation
+---
 
-\* User retrieval
-
-\* Deposits
-
-\* Withdrawals
-
-\* Balance updates
-
-
-
-\## Real Problems Solved
-
-
-
-During the project:
-
-
-
-\* Docker DNS pull issues
-
-\* Docker Desktop startup issues
-
-\* MySQL timing issues
-
-\* App connection refused errors
-
-\* PowerShell JSON formatting errors
-
-
-
-\## Skills Demonstrated
-
-
-
-\* Docker
-
-\* Docker Compose
-
-\* Backend API development
-
-\* MySQL integration
-
-\* SQL logic
-
-\* REST testing
-
-\* Debugging containers
-
-\* Multi-service architecture
-
-
-
-
-
-\## Why This Project Matters
-
-
-
-This project proves practical ability to build real backend systems using containers and databases, not just theory.
-
-
-
-\## Future Improvements
-
-
-
-\* JWT Authentication
-
-\* Transaction History
-
-\* Transfer Between Users
-
-\* Frontend Dashboard
-
-\* CI/CD Pipeline
-
-\* Deploy to AWS EC2
-
-\* Nginx Reverse Proxy
-
-
-
-\## Author
-
-
-
-Ndandise Xalisa
-
-
+Cloud Engineer | AWS | Docker | CI/CD | Linux | DevOps | Automation
 
 GitHub: https://github.com/Zwelibanzi09-03
-
-
-
-\## Final Status
-
-
-
-Dockerized Cloud Wallet completed successfully.
-
-
-
