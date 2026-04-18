@@ -262,5 +262,3 @@ This project proves real hands-on DevOps engineering ability:
 ---
 
 Cloud Engineer | AWS | Docker | CI/CD | Linux | DevOps | Automation
-
-GitHub: https://github.com/Zwelibanzi09-03
